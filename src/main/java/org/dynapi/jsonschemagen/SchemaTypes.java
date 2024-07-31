@@ -1,6 +1,6 @@
 package org.dynapi.jsonschemagen;
 
-public class SchemaTypes {
+class SchemaTypes {
     public static final String NULL = "null";
     public static final String BOOLEAN = "boolean";
     public static final String INTEGER = "integer";

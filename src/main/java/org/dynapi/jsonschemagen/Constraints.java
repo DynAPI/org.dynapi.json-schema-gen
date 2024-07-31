@@ -2,6 +2,9 @@ package org.dynapi.jsonschemagen;
 
 import java.lang.annotation.*;
 
+/**
+ * adds some limitations to a field
+ */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)

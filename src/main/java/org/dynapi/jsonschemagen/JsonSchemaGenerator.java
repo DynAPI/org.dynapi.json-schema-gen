@@ -8,6 +8,12 @@ import java.util.Arrays;
 import java.util.Map;
 
 public class JsonSchemaGenerator {
+    /**
+     * converts a class to json-schema
+     *
+     * @param clazz class marked with {@code @JsonSchemaAble}
+     * @return json-schema
+     */
     public static JSONObject generateJsonSchema(Class<?> clazz) {
         if (!clazz.isAnnotationPresent(JsonSchemaAble.class))
             throw new RuntimeException(String.format("%s is not marked as @JsonSchemaAble", clazz.getCanonicalName()));
@@ -23,6 +29,12 @@ public class JsonSchemaGenerator {
         return jsonSchema;
     }
 
+    /**
+     * converts a class to json-schema and returns it as json-string
+     *
+     * @param clazz class marked with {@code @JsonSchemaAble}
+     * @return json-schema as string
+     */
     public static String generateJsonSchemaAsString(Class<?> clazz) {
         JSONObject jsonSchema = generateJsonSchema(clazz);
         return jsonSchema.toString(2);

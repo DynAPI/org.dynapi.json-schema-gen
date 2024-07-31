@@ -1,5 +1,8 @@
 package org.dynapi.jsonschemagen;
 
+/**
+ * list of commonly supported formats for {@code @Constraints(format=)}
+ */
 public class SchemaFormats {
     // Dates and Times
     public static final String DATE_TIME = "date-time";
