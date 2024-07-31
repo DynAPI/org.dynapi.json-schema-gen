@@ -37,7 +37,7 @@ publishing {
     repositories {
         maven {
             name = "GithubPackages"
-            url = "https://maven.github.com/DynAPI/org.dynapi.jsonschemagen"
+            url = "https://maven.pkg.github.com/DynAPI/org.dynapi.jsonschemagen"
             credentials {
                 username = System.getenv("GITHUB_ACTOR")
                 password = System.getenv("GITHUB_TOKEN")
