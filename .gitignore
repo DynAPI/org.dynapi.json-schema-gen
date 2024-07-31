@@ -1,3 +1,8 @@
+# Project
+/tmp/
+/src/test/java/DevTester.java
+
+# Gradle
 .gradle
 build/
 !gradle/wrapper/gradle-wrapper.jar
