@@ -1,4 +1,4 @@
-name: Build + Release
+name: Publish Build to Github Releases
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
   workflow_dispatch:  # manual trigger
 
 jobs:
-  build-release:
+  publish-release:
     permissions:
       contents: write  # allow to create a release
     runs-on: ubuntu-latest
