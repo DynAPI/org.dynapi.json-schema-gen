@@ -51,6 +51,8 @@ public class JsonSchemaGenerator {
 
         JSONObject properties = new JSONObject();
         for (Field field : clazz.getDeclaredFields()) {
+            if (field.isAnnotationPresent(Hidden.class)) continue;
+
             JSONObject fieldSchema = generateJsonSchemaForField(field.getType());
 
             applyDescription(field.getAnnotation(Description.class), fieldSchema);
