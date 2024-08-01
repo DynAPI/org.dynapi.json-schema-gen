@@ -22,7 +22,7 @@ public class JsonSchemaGenerator {
         jsonSchema.put("$schema", "https://json-schema.org/draft/2020-12/schema");
         jsonSchema.put("title", clazz.getSimpleName());
 
-        JSONObject objectSchema = generateJsonSchemaForClass(clazz);
+        JSONObject objectSchema = generateJsonSchemaForObject(clazz);
         for (String key : objectSchema.keySet())
             jsonSchema.put(key, objectSchema.get(key));
 
@@ -40,38 +40,6 @@ public class JsonSchemaGenerator {
         return jsonSchema.toString(2);
     }
 
-    private static JSONObject generateJsonSchemaForClass(Class<?> clazz) {
-        JSONObject jsonSchema = new JSONObject();
-
-        if (clazz.equals(int.class) || clazz.equals(Integer.class)) {
-            jsonSchema.put("type", SchemaTypes.INTEGER);
-        } else if (clazz.equals(long.class) || clazz.equals(Long.class)) {
-            jsonSchema.put("type", SchemaTypes.INTEGER);
-        } else if (clazz.equals(double.class) || clazz.equals(Double.class)) {
-            jsonSchema.put("type", SchemaTypes.NUMBER);
-        } else if (clazz.equals(float.class) || clazz.equals(Float.class)) {
-            jsonSchema.put("type", SchemaTypes.NUMBER);
-        } else if (clazz.equals(boolean.class) || clazz.equals(Boolean.class)) {
-            jsonSchema.put("type", SchemaTypes.BOOLEAN);
-        } else if (clazz.equals(String.class)) {
-            jsonSchema.put("type", SchemaTypes.STRING);
-        } else if (clazz.equals(Map.class)) {
-            jsonSchema.put("type", SchemaTypes.OBJECT);
-        } else if (clazz.equals(Object.class)) {
-            // todo: verify if not type is any
-//            jsonSchema.put("type", SchemaTypes.OBJECT);
-        } else if (clazz.isArray()) {  // todo: support for List?
-            JSONObject objectSchema = generateJsonSchemaForArray(clazz);
-            for (String key : objectSchema.keySet())
-                jsonSchema.put(key, objectSchema.get(key));
-        } else {
-            JSONObject objectSchema = generateJsonSchemaForObject(clazz);
-            for (String key : objectSchema.keySet())
-                jsonSchema.put(key, objectSchema.get(key));
-        }
-        return jsonSchema;
-    }
-
     private static JSONObject generateJsonSchemaForObject(Class<?> clazz) {
         JSONObject jsonSchema = new JSONObject();
         jsonSchema.put("type", "object");
@@ -83,7 +51,7 @@ public class JsonSchemaGenerator {
 
         JSONObject properties = new JSONObject();
         for (Field field : clazz.getDeclaredFields()) {
-            JSONObject fieldSchema = generateJsonSchemaForClass(field.getType());
+            JSONObject fieldSchema = generateJsonSchemaForField(field.getType());
 
             applyDescription(field.getAnnotation(Description.class), fieldSchema);
             applyExamples(field.getAnnotation(Examples.class), fieldSchema);
@@ -111,11 +79,43 @@ public class JsonSchemaGenerator {
         return jsonSchema;
     }
 
-    private static JSONObject generateJsonSchemaForArray(Class<?> clazz) {
+    private static JSONObject generateJsonSchemaForField(Class<?> clazz) {
+        JSONObject jsonSchema = new JSONObject();
+
+        if (clazz.equals(int.class) || clazz.equals(Integer.class)) {
+            jsonSchema.put("type", SchemaTypes.INTEGER);
+        } else if (clazz.equals(long.class) || clazz.equals(Long.class)) {
+            jsonSchema.put("type", SchemaTypes.INTEGER);
+        } else if (clazz.equals(double.class) || clazz.equals(Double.class)) {
+            jsonSchema.put("type", SchemaTypes.NUMBER);
+        } else if (clazz.equals(float.class) || clazz.equals(Float.class)) {
+            jsonSchema.put("type", SchemaTypes.NUMBER);
+        } else if (clazz.equals(boolean.class) || clazz.equals(Boolean.class)) {
+            jsonSchema.put("type", SchemaTypes.BOOLEAN);
+        } else if (clazz.equals(String.class)) {
+            jsonSchema.put("type", SchemaTypes.STRING);
+        } else if (clazz.equals(Map.class)) {
+            jsonSchema.put("type", SchemaTypes.OBJECT);
+        } else if (clazz.equals(Object.class)) {
+            // todo: verify if not type is any
+//            jsonSchema.put("type", SchemaTypes.OBJECT);
+        } else if (clazz.isArray()) {  // todo: support for List?
+            JSONObject objectSchema = generateJsonSchemaForArrayField(clazz);
+            for (String key : objectSchema.keySet())
+                jsonSchema.put(key, objectSchema.get(key));
+        } else {
+            JSONObject objectSchema = generateJsonSchemaForObject(clazz);
+            for (String key : objectSchema.keySet())
+                jsonSchema.put(key, objectSchema.get(key));
+        }
+        return jsonSchema;
+    }
+
+    private static JSONObject generateJsonSchemaForArrayField(Class<?> clazz) {
         JSONObject jsonSchema = new JSONObject();
         jsonSchema.put("type", "array");
         JSONObject items = new JSONObject();
-        JSONObject itemType = generateJsonSchemaForClass(clazz.getComponentType());
+        JSONObject itemType = generateJsonSchemaForField(clazz.getComponentType());
         for (String key : itemType.keySet())
             items.put(key, itemType.get(key));
         jsonSchema.put("items", items);
