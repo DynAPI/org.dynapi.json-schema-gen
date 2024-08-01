@@ -78,6 +78,9 @@ public class JsonSchemaGenerator {
         if (!required.isEmpty())
             jsonSchema.put("required", required);
 
+        if (!dependentRequired.isEmpty())
+            jsonSchema.put("dependentRequired", dependentRequired);
+
         return jsonSchema;
     }
 
