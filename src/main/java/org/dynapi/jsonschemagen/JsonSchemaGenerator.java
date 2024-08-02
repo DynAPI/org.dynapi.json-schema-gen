@@ -4,6 +4,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -47,12 +48,23 @@ public class JsonSchemaGenerator {
         jsonSchema.put("additionalProperties", false);
         applyDescription(clazz.getAnnotation(Description.class), jsonSchema);
 
+        List<String> fieldNames = Arrays.stream(clazz.getDeclaredFields()).map(Field::getName).toList();
+
+        HiddenProperties hiddenProperties = clazz.getAnnotation(HiddenProperties.class);
+        List<String> hiddenPropertiesNames = List.of(hiddenProperties != null ? hiddenProperties.value() : new String[0]);
+
+        List<String> diff = new ArrayList<>(hiddenPropertiesNames);
+        diff.removeAll(fieldNames);
+        if (!diff.isEmpty()) {
+            throw new RuntimeException("Unknown properties to hide: " + String.join(", ", diff));
+        }
+
         JSONArray required = new JSONArray();
         JSONObject dependentRequired = new JSONObject();
 
         JSONObject properties = new JSONObject();
         for (Field field : clazz.getDeclaredFields()) {
-            if (field.isAnnotationPresent(Hidden.class)) continue;
+            if (hiddenPropertiesNames.contains(field.getName()) || field.isAnnotationPresent(Hidden.class)) continue;
 
             JSONObject fieldSchema = generateJsonSchemaForField(field.getType());
 
@@ -66,7 +78,10 @@ public class JsonSchemaGenerator {
             RequiredIf requiredIf = field.getAnnotation(RequiredIf.class);
             if (requiredIf != null) {
                 String ifField = requiredIf.value();
-                if (dependentRequired.has(ifField))
+                if (!fieldNames.contains(ifField)) {
+                    String errorMessage = String.format("Bad @RequiredIf(\"%s\") of property %s of class %s", ifField, field.getName(), clazz.getCanonicalName());
+                    throw new RuntimeException(errorMessage);
+                } else if (dependentRequired.has(ifField))
                     dependentRequired.getJSONArray(ifField).put(field.getName());
                 else
                     dependentRequired.put(ifField, new JSONArray().put(field.getName()));
