@@ -5,6 +5,7 @@ import org.json.JSONObject;
 
 import java.lang.reflect.Field;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 public class JsonSchemaGenerator {
@@ -108,6 +109,10 @@ public class JsonSchemaGenerator {
             JSONObject objectSchema = generateJsonSchemaForArrayField(clazz);
             for (String key : objectSchema.keySet())
                 jsonSchema.put(key, objectSchema.get(key));
+        } else if (clazz.isEnum()) {
+            JSONObject enumSchema = generateJsonSchemaForEnum(clazz);
+            for (String key : enumSchema.keySet())
+                jsonSchema.put(key, enumSchema.get(key));
         } else {
             JSONObject objectSchema = generateJsonSchemaForObject(clazz);
             for (String key : objectSchema.keySet())
@@ -124,6 +129,13 @@ public class JsonSchemaGenerator {
         for (String key : itemType.keySet())
             items.put(key, itemType.get(key));
         jsonSchema.put("items", items);
+        return jsonSchema;
+    }
+
+    private static JSONObject generateJsonSchemaForEnum(Class<?> clazz) {
+        JSONObject jsonSchema = new JSONObject();
+        jsonSchema.put("type", SchemaTypes.STRING);
+        jsonSchema.put("enum", List.of(clazz.getEnumConstants()));
         return jsonSchema;
     }
 
