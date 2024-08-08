@@ -4,10 +4,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class JsonSchemaGenerator {
     /**
@@ -161,7 +158,7 @@ public class JsonSchemaGenerator {
 
     private static void applyExamples(Examples examples, JSONObject object) {
         if (examples == null) return;
-        object.put("examples", Arrays.stream(examples.value()).map(JsonSchemaGenerator::parseStringToJsonX).toList());
+        object.put("examples", Arrays.stream(examples.value()).map(Util::parseStringToJsonX).toList());
     }
 
     private static void applyConstraints(Constraints constraints, JSONObject object) {
@@ -172,7 +169,7 @@ public class JsonSchemaGenerator {
         if (!constraints.option().isEmpty())
             object.put("const", new JSONObject(constraints.option()));
         if (constraints.options().length > 0)
-            object.put("enum", Arrays.stream(constraints.options()).map(JsonSchemaGenerator::parseStringToJsonX).toList());
+            object.put("enum", Arrays.stream(constraints.options()).map(Util::parseStringToJsonX).toList());
 
         // string constrains
 
@@ -217,14 +214,5 @@ public class JsonSchemaGenerator {
 
         if (constraints.uniqueItems())
             object.put("uniqueItems", true);
-    }
-
-    private static Object parseStringToJsonX(String string) {
-        if (string.startsWith("{") && string.endsWith("}")) return new JSONObject(string);
-        if (string.startsWith("[") && string.endsWith("]")) return new JSONArray(string);
-        if (string.startsWith("\"") && string.endsWith("\"")) return string.substring(1, string.length() - 1);
-        if (string.matches("\\d+")) return Integer.parseInt(string);
-        if (string.matches("\\d*\\.\\d+")) return Double.parseDouble(string);
-        return string;
     }
 }
