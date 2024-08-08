@@ -21,9 +21,19 @@ public class JsonSchemaGenerator {
         jsonSchema.put("$schema", "https://json-schema.org/draft/2020-12/schema");
         jsonSchema.put("title", clazz.getSimpleName());
 
-        JSONObject objectSchema = generateJsonSchemaForObject(clazz);
+        StateData state = new StateData();
+
+        JSONObject objectSchema = generateJsonSchemaForObject(state, clazz);
         for (String key : objectSchema.keySet())
             jsonSchema.put(key, objectSchema.get(key));
+
+        if (!state.references.isEmpty()) {
+            JSONObject definitions = new JSONObject();
+            jsonSchema.put("$defs", definitions);
+            for (var ref : state.references.entrySet()) {
+                definitions.put(ref.getKey().getCanonicalName(), ref.getValue());
+            }
+        }
 
         return jsonSchema;
     }
@@ -39,11 +49,20 @@ public class JsonSchemaGenerator {
         return jsonSchema.toString(2);
     }
 
-    private static JSONObject generateJsonSchemaForObject(Class<?> clazz) {
-        JSONObject jsonSchema = new JSONObject();
-        jsonSchema.put("type", "object");
-        jsonSchema.put("additionalProperties", false);
-        applyDescription(clazz.getAnnotation(Description.class), jsonSchema);
+    private static JSONObject generateJsonSchemaForObject(StateData state, Class<?> clazz) {
+        JSONObject jsonSchema = new JSONObject()
+                .put("$ref", "#/$defs/" + clazz.getCanonicalName());
+        System.out.println(state.references);
+        if (state.references.containsKey(clazz)) {
+            return jsonSchema;
+        }
+        System.out.println("Continue for " + clazz);
+
+        JSONObject refJsonSchema = new JSONObject();
+        state.references.put(clazz, refJsonSchema);
+        refJsonSchema.put("type", "object");
+        refJsonSchema.put("additionalProperties", false);
+        applyDescription(clazz.getAnnotation(Description.class), refJsonSchema);
 
         List<String> fieldNames = Arrays.stream(clazz.getDeclaredFields()).map(Field::getName).toList();
 
@@ -63,7 +82,7 @@ public class JsonSchemaGenerator {
         for (Field field : clazz.getDeclaredFields()) {
             if (hiddenPropertiesNames.contains(field.getName()) || field.isAnnotationPresent(Hidden.class)) continue;
 
-            JSONObject fieldSchema = generateJsonSchemaForField(field.getType());
+            JSONObject fieldSchema = generateJsonSchemaForField(state, field.getType());
 
             applyDescription(field.getAnnotation(Description.class), fieldSchema);
             applyExamples(field.getAnnotation(Examples.class), fieldSchema);
@@ -86,18 +105,18 @@ public class JsonSchemaGenerator {
 
             properties.put(field.getName(), fieldSchema);
         }
-        jsonSchema.put("properties", properties);
+        refJsonSchema.put("properties", properties);
 
         if (!required.isEmpty())
-            jsonSchema.put("required", required);
+            refJsonSchema.put("required", required);
 
         if (!dependentRequired.isEmpty())
-            jsonSchema.put("dependentRequired", dependentRequired);
+            refJsonSchema.put("dependentRequired", dependentRequired);
 
         return jsonSchema;
     }
 
-    private static JSONObject generateJsonSchemaForField(Class<?> clazz) {
+    private static JSONObject generateJsonSchemaForField(StateData state, Class<?> clazz) {
         JSONObject jsonSchema = new JSONObject();
 
         if (clazz.equals(int.class) || clazz.equals(Integer.class)) {
@@ -115,10 +134,10 @@ public class JsonSchemaGenerator {
         } else if (clazz.equals(Map.class)) {
             jsonSchema.put("type", SchemaTypes.OBJECT);
         } else if (clazz.equals(Object.class)) {
-            // todo: verify if not type is any
+            // todo: verify if missing type == any
 //            jsonSchema.put("type", SchemaTypes.OBJECT);
         } else if (clazz.isArray()) {  // todo: support for List?
-            JSONObject objectSchema = generateJsonSchemaForArrayField(clazz);
+            JSONObject objectSchema = generateJsonSchemaForArrayField(state, clazz);
             for (String key : objectSchema.keySet())
                 jsonSchema.put(key, objectSchema.get(key));
         } else if (clazz.isEnum()) {
@@ -126,18 +145,18 @@ public class JsonSchemaGenerator {
             for (String key : enumSchema.keySet())
                 jsonSchema.put(key, enumSchema.get(key));
         } else {
-            JSONObject objectSchema = generateJsonSchemaForObject(clazz);
+            JSONObject objectSchema = generateJsonSchemaForObject(state, clazz);
             for (String key : objectSchema.keySet())
                 jsonSchema.put(key, objectSchema.get(key));
         }
         return jsonSchema;
     }
 
-    private static JSONObject generateJsonSchemaForArrayField(Class<?> clazz) {
+    private static JSONObject generateJsonSchemaForArrayField(StateData state, Class<?> clazz) {
         JSONObject jsonSchema = new JSONObject();
         jsonSchema.put("type", "array");
         JSONObject items = new JSONObject();
-        JSONObject itemType = generateJsonSchemaForField(clazz.getComponentType());
+        JSONObject itemType = generateJsonSchemaForField(state, clazz.getComponentType());
         for (String key : itemType.keySet())
             items.put(key, itemType.get(key));
         jsonSchema.put("items", items);
@@ -214,5 +233,9 @@ public class JsonSchemaGenerator {
 
         if (constraints.uniqueItems())
             object.put("uniqueItems", true);
+    }
+
+    protected static class StateData {
+        protected Map<Class<?>, JSONObject> references = new HashMap<>();
     }
 }
