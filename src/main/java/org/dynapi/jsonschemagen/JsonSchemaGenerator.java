@@ -27,12 +27,10 @@ public class JsonSchemaGenerator {
         for (String key : objectSchema.keySet())
             jsonSchema.put(key, objectSchema.get(key));
 
-        if (!state.references.isEmpty()) {
-            JSONObject definitions = new JSONObject();
-            jsonSchema.put("$defs", definitions);
-            for (var ref : state.references.entrySet()) {
-                definitions.put(ref.getKey().getCanonicalName(), ref.getValue());
-            }
+        JSONObject definitions = new JSONObject();
+        jsonSchema.put("$defs", definitions);
+        for (var ref : state.references.entrySet()) {
+            definitions.put(ref.getKey().getCanonicalName(), ref.getValue());
         }
 
         return jsonSchema;
@@ -50,13 +48,12 @@ public class JsonSchemaGenerator {
     }
 
     private static JSONObject generateJsonSchemaForObject(StateData state, Class<?> clazz) {
+        // we always return a ref for an object for recursive references
         JSONObject jsonSchema = new JSONObject()
                 .put("$ref", "#/$defs/" + clazz.getCanonicalName());
-        System.out.println(state.references);
         if (state.references.containsKey(clazz)) {
             return jsonSchema;
         }
-        System.out.println("Continue for " + clazz);
 
         JSONObject refJsonSchema = new JSONObject();
         state.references.put(clazz, refJsonSchema);
@@ -87,10 +84,15 @@ public class JsonSchemaGenerator {
             applyDescription(field.getAnnotation(Description.class), fieldSchema);
             applyExamples(field.getAnnotation(Examples.class), fieldSchema);
             applyConstraints(field.getAnnotation(Constraints.class), fieldSchema);
+
             if (field.isAnnotationPresent(Deprecated.class))
                 fieldSchema.put("deprecated", true);
+
+            // "required": ["field-name"]
             if (field.isAnnotationPresent(Required.class))
                 required.put(field.getName());
+
+            // "dependentRequired": { "ifField": ["thenField1", "thenField2"] }
             RequiredIf requiredIf = field.getAnnotation(RequiredIf.class);
             if (requiredIf != null) {
                 String ifField = requiredIf.value();
@@ -135,7 +137,6 @@ public class JsonSchemaGenerator {
             jsonSchema.put("type", SchemaTypes.OBJECT);
         } else if (clazz.equals(Object.class)) {
             // todo: verify if missing type == any
-//            jsonSchema.put("type", SchemaTypes.OBJECT);
         } else if (clazz.isArray()) {  // todo: support for List?
             JSONObject objectSchema = generateJsonSchemaForArrayField(state, clazz);
             for (String key : objectSchema.keySet())
@@ -155,11 +156,14 @@ public class JsonSchemaGenerator {
     private static JSONObject generateJsonSchemaForArrayField(StateData state, Class<?> clazz) {
         JSONObject jsonSchema = new JSONObject();
         jsonSchema.put("type", "array");
+
         JSONObject items = new JSONObject();
+        jsonSchema.put("items", items);
+
         JSONObject itemType = generateJsonSchemaForField(state, clazz.getComponentType());
         for (String key : itemType.keySet())
             items.put(key, itemType.get(key));
-        jsonSchema.put("items", items);
+
         return jsonSchema;
     }
 
