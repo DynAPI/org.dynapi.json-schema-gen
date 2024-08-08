@@ -61,7 +61,7 @@ public class JsonSchemaGenerator {
         JSONObject refJsonSchema = new JSONObject();
         state.references.put(clazz, refJsonSchema);
         refJsonSchema.put("type", "object");
-        refJsonSchema.put("additionalProperties", false);
+        refJsonSchema.put("additionalProperties", clazz.isAnnotationPresent(AllowAdditionalProperties.class));
         applyDescription(clazz.getAnnotation(Description.class), refJsonSchema);
 
         List<String> fieldNames = Arrays.stream(clazz.getDeclaredFields()).map(Field::getName).toList();
