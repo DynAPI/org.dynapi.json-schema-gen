@@ -32,6 +32,6 @@ jobs:
           automatic_release_tag: "latest"
           draft: false
           prerelease: false
-          title: "org.dynapi.jsonschemagen"
+          title: "org.dynapi:json-schema-gen"
           files: |
             build/libs/*
