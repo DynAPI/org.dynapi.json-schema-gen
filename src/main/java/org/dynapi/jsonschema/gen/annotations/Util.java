@@ -1,11 +1,8 @@
-package org.dynapi.jsonschemagen;
+package org.dynapi.jsonschema.gen.annotations;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-/**
- * utility functions only for jsonschemagen
- */
 class Util {
     protected static Object parseStringToJsonX(String string) {
         if (string.startsWith("{") && string.endsWith("}")) return new JSONObject(string);

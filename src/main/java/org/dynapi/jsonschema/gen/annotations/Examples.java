@@ -1,4 +1,4 @@
-package org.dynapi.jsonschemagen;
+package org.dynapi.jsonschema.gen.annotations;
 
 import java.lang.annotation.*;
 

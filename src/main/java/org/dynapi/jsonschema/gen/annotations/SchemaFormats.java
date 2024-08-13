@@ -1,4 +1,4 @@
-package org.dynapi.jsonschemagen;
+package org.dynapi.jsonschema.gen.annotations;
 
 /**
  * list of commonly supported formats for {@code @Constraints(format=)}
