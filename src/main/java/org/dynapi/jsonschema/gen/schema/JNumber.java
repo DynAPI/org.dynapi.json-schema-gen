@@ -38,6 +38,7 @@ public class JNumber extends Schema<JNumber, Double> {
 
     @Override
     protected JSONObject extraSchemaData() {
-        return null;
+        return new JSONObject()
+                .put("type", "number");
     }
 }

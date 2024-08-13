@@ -21,8 +21,13 @@ abstract public class Schema<THIS extends Schema<THIS, ?>, TYPE> implements Json
         return getThis();
     }
 
-    public THIS example(TYPE example) {
-        options.put("example", example);
+    @SafeVarargs
+    public final THIS examples(TYPE... examples) {
+        return examples(List.of(examples));
+    }
+
+    public final THIS examples(List<TYPE> examples) {
+        options.put("examples", examples);
         return getThis();
     }
 
@@ -38,6 +43,15 @@ abstract public class Schema<THIS extends Schema<THIS, ?>, TYPE> implements Json
 
     public THIS options(List<TYPE> enumValues) {
         options.put("enum", enumValues);
+        return getThis();
+    }
+
+    public THIS deprecated() {
+        return deprecated(true);
+    }
+
+    public THIS deprecated(boolean deprecated) {
+        options.put("deprecated", deprecated);
         return getThis();
     }
 

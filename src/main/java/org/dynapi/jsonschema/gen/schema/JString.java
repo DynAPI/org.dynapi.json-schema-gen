@@ -41,6 +41,11 @@ public class JString extends Schema<JString, String> {
         return this;
     }
 
+    public JString format(@NonNull String format) {
+        options.put("format", format);
+        return this;
+    }
+
     @Override
     public JSONObject extraSchemaData() {
         return new JSONObject()

@@ -24,7 +24,7 @@ public class JObject extends Schema<JObject, JSONObject> {
 
     public JObject requiredIf(@NonNull String requiredProperty, @NonNull String ifProperty) {
         if (!options.containsKey("dependentRequired")) options.put("dependentRequired", new JSONObject());
-        JSONObject dependentRequired = (JSONObject) options.get(requiredProperty);
+        JSONObject dependentRequired = (JSONObject) options.get("dependentRequired");
         if (!dependentRequired.has(ifProperty)) dependentRequired.put(ifProperty, new JSONArray());
         dependentRequired.getJSONArray(ifProperty).put(requiredProperty);
         return this;
