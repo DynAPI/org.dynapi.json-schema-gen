@@ -1,4 +1,4 @@
-package org.dynapi.jsonschema.gen.annotations;
+package org.dynapi.jsonschema.gen;
 
 class SchemaTypes {
     public static final String NULL = "null";

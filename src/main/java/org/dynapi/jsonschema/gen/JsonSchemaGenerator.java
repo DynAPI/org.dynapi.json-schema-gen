@@ -1,5 +1,7 @@
-package org.dynapi.jsonschema.gen.annotations;
+package org.dynapi.jsonschema.gen;
 
+import org.dynapi.jsonschema.gen.annotations.*;
+import org.dynapi.jsonschema.gen.annotations.JsonSchemaAble;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
