@@ -35,7 +35,6 @@ public class JsonSchemaBuilder {
         jsonSchema.put("title", title);
 
         JSONObject rootSchema = schema.getJsonSchema();
-        System.out.println("Root-Schema: " + rootSchema);
         for (String key : rootSchema.keySet())
             jsonSchema.put(key, rootSchema.get(key));
 
