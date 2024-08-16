@@ -47,8 +47,8 @@ class AnnotationParser {
             if (field.isAnnotationPresent(Required.class))
                 jsonSchema.required(field.getName());
 
-            RequiredIf requiredIf = field.getAnnotation(RequiredIf.class);
-            if (requiredIf != null) {
+            RequiredIf[] requiredIfAnyOf = field.getAnnotationsByType(RequiredIf.class);
+            for (RequiredIf requiredIf : requiredIfAnyOf) {
                 String ifField = field.getName();
                 if (!fieldNames.contains(ifField)) {
                     String errorMessage = String.format("Bad @RequiredIf(\"%s\") of property %s of class %s", ifField, field.getName(), clazz.getCanonicalName());
