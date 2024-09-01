@@ -2,6 +2,7 @@ package org.dynapi.jsonschema.gen;
 
 import org.dynapi.jsonschema.gen.annotations.*;
 import org.dynapi.jsonschema.gen.schema.*;
+import org.json.JSONObject;
 
 import java.lang.reflect.Field;
 import java.util.*;
@@ -32,6 +33,8 @@ class AnnotationParser {
             throw new RuntimeException("Unknown properties to hide: " + String.join(", ", diff));
         }
 
+        List<Set<String>> mutuallyExclusivesGroups = new ArrayList<>();
+
         for (Field field : clazz.getDeclaredFields()) {
             if (hiddenPropertiesNames.contains(field.getName()) || field.isAnnotationPresent(Hidden.class)) continue;
 
@@ -57,7 +60,39 @@ class AnnotationParser {
                 jsonSchema.requiredIf(ifField, requiredIf.value());
             }
 
+            // finds a mutually exclusive group and adds, or creates a new one
+            MutuallyExclusiveWith mutuallyExclusiveWith = field.getAnnotation(MutuallyExclusiveWith.class);
+            if (mutuallyExclusiveWith != null) {
+                Set<String> group = new HashSet<>();
+                group.add(field.getName());
+                group.addAll(Arrays.asList(mutuallyExclusiveWith.value()));
+                Optional<Set<String>> existingGroup = mutuallyExclusivesGroups.stream().filter(g -> !Collections.disjoint(g, group)).findFirst();
+                if (existingGroup.isPresent()) {
+                    existingGroup.get().addAll(group);
+                } else {
+                    mutuallyExclusivesGroups.add(group);
+                }
+            }
+
             jsonSchema.addProperty(field.getName(), fieldSchema);
+        }
+
+        // weird way of adding mutually exclusive fields
+        if (!mutuallyExclusivesGroups.isEmpty()) {
+            AllOf allOf = new AllOf();
+            for (Set<String> group : mutuallyExclusivesGroups) {
+                OneOf oneOf = new OneOf();
+                for (String fieldName : group) {
+                    Set<String> otherFields = new HashSet<>(group);
+                    otherFields.remove(fieldName);
+                    BackdoorSchema backdoor = new BackdoorSchema()
+                            .setDirectly("required", List.of(fieldName))
+                            .setDirectly("not", new JSONObject().put("required", otherFields));
+                    oneOf.addSchema(backdoor);
+                }
+                allOf.addSchema(oneOf);
+            }
+            BackdoorSchema.addExtraSchemaDataFromTo(allOf, jsonSchema);
         }
 
         return jsonSchema;
