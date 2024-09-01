@@ -55,6 +55,10 @@ abstract public class Schema<THIS extends Schema<THIS, ?>, TYPE> implements Json
         return getThis();
     }
 
+    public Not not() {
+        return new Not(this);
+    }
+
     @Override
     public JSONObject getJsonSchema() {
         JSONObject schema = new JSONObject(options);
