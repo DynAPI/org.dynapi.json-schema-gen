@@ -5,10 +5,10 @@ import org.json.JSONObject;
 
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
-public class JAnyType extends Schema<JAnyType, Object> {
+public class TBoolean extends Schema<TBoolean, Boolean> {
     @Override
     protected JSONObject extraSchemaData() {
-        // empty object should do
-        return new JSONObject();
+        return new JSONObject()
+                .put("type", "boolean");
     }
 }

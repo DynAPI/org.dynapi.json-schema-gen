@@ -10,17 +10,17 @@ import java.util.List;
 
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
-public class JArray extends Schema<JArray, JSONArray> {
+public class TArray extends Schema<TArray, JSONArray> {
     private final List<Schema<?, ?>> types = new ArrayList<>();
 
-    public JArray(Schema<?, ?>... types) {
+    public TArray(Schema<?, ?>... types) {
         this.types.addAll(Arrays.asList(types));
     }
 
     /**
      * @param size exact number of items in this array
      */
-    public JArray size(int size) {
+    public TArray size(int size) {
         options.put("minItems", size);
         options.put("maxItems", size);
         return this;
@@ -29,7 +29,7 @@ public class JArray extends Schema<JArray, JSONArray> {
     /**
      * @param minSize minimum number of items in this array
      */
-    public JArray minSize(int minSize) {
+    public TArray minSize(int minSize) {
         options.put("minItems", minSize);
         return this;
     }
@@ -37,7 +37,7 @@ public class JArray extends Schema<JArray, JSONArray> {
     /**
      * @param maxSize maximum number of items in this array
      */
-    public JArray maxSize(int maxSize) {
+    public TArray maxSize(int maxSize) {
         options.put("maxItems", maxSize);
         return this;
     }
@@ -45,12 +45,12 @@ public class JArray extends Schema<JArray, JSONArray> {
     /**
      * marks that all items should be unique
      */
-    public JArray uniqueItems() { return uniqueItems(true); }
+    public TArray uniqueItems() { return uniqueItems(true); }
 
     /**
      * marks that all items should be unique
      */
-    public JArray uniqueItems(boolean uniqueItems) {
+    public TArray uniqueItems(boolean uniqueItems) {
         options.put("uniqueItems", uniqueItems);
         return this;
     }
@@ -59,7 +59,7 @@ public class JArray extends Schema<JArray, JSONArray> {
      * note: use this multiple times to allow multiple schemas
      * @param schema schema for the values
      */
-    public JArray addType(@NonNull Schema<?, ?> schema) {
+    public TArray addType(@NonNull Schema<?, ?> schema) {
         types.add(schema);
         return this;
     }

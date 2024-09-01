@@ -10,19 +10,19 @@ import java.util.stream.Collectors;
 
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
-public class JObject extends Schema<JObject, JSONObject> {
+public class TObject extends Schema<TObject, JSONObject> {
     private final Map<String, Schema<?, ?>> properties = new HashMap<>();
 
     /**
      * @param properties marks properties that are required
      */
-    public JObject required(@NonNull String... properties) {
+    public TObject required(@NonNull String... properties) {
         if (!options.containsKey("required")) options.put("required", new JSONArray());
         ((JSONArray) options.get("required")).putAll(properties);
         return this;
     }
 
-    public JObject requiredIf(@NonNull String requiredProperty, @NonNull String ifProperty) {
+    public TObject requiredIf(@NonNull String requiredProperty, @NonNull String ifProperty) {
         if (!options.containsKey("dependentRequired")) options.put("dependentRequired", new JSONObject());
         JSONObject dependentRequired = (JSONObject) options.get("dependentRequired");
         if (!dependentRequired.has(ifProperty)) dependentRequired.put(ifProperty, new JSONArray());
@@ -34,31 +34,31 @@ public class JObject extends Schema<JObject, JSONObject> {
      * @param property property-name
      * @param value value schema
      */
-    public JObject addProperty(@NonNull String property, @NonNull Schema<?, ?> value) {
+    public TObject addProperty(@NonNull String property, @NonNull Schema<?, ?> value) {
         properties.put(property, value);
         return this;
     }
 
     /**
-     * marks that this object accepts properties not specified via {@link JObject#addProperty}
+     * marks that this object accepts properties not specified via {@link TObject#addProperty}
      */
-    public JObject allowAdditionalProperties() {
+    public TObject allowAdditionalProperties() {
         return allowAdditionalProperties(true);
     }
     /**
-     * marks that this object accepts properties not specified via {@link JObject#addProperty}
+     * marks that this object accepts properties not specified via {@link TObject#addProperty}
      */
-    public JObject allowAdditionalProperties(boolean allowAdditionalProperties) {
+    public TObject allowAdditionalProperties(boolean allowAdditionalProperties) {
         options.put("additionalProperties", allowAdditionalProperties);
         return this;
     }
 
-    public JObject minProperties(int minProperties) {
+    public TObject minProperties(int minProperties) {
         options.put("minProperties", minProperties);
         return this;
     }
 
-    public JObject maxProperties(int maxProperties) {
+    public TObject maxProperties(int maxProperties) {
         options.put("maxProperties", maxProperties);
         return this;
     }

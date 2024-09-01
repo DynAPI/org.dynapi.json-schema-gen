@@ -10,13 +10,13 @@ import java.util.stream.Stream;
 class AnnotationParser {
     protected static Schema<?, ?> generateJsonSchemaForObject(StateData state, Class<?> clazz) {
         String refName = clazz.getCanonicalName();
-        JRef objectRef = new JRef(refName);
+        TRef objectRef = new TRef(refName);
         // we always return a ref for an object for recursive references
         if (state.references.containsKey(clazz.getCanonicalName())) {
             return objectRef;
         }
 
-        JObject jsonSchema = new JObject()
+        TObject jsonSchema = new TObject()
                 .allowAdditionalProperties(clazz.isAnnotationPresent(AllowAdditionalProperties.class));
         state.references.put(refName, jsonSchema);
         applyDescription(clazz.getAnnotation(Description.class), jsonSchema);
@@ -65,21 +65,21 @@ class AnnotationParser {
 
     protected static Schema<?, ?> generateJsonSchemaForField(StateData state, Class<?> clazz) {
         if (clazz.equals(int.class) || clazz.equals(Integer.class)) {
-            return new JInteger();
+            return new TInteger();
         } else if (clazz.equals(long.class) || clazz.equals(Long.class)) {
-            return new JInteger();
+            return new TInteger();
         } else if (clazz.equals(double.class) || clazz.equals(Double.class)) {
-            return new JNumber();
+            return new TNumber();
         } else if (clazz.equals(float.class) || clazz.equals(Float.class)) {
-            return new JNumber();
+            return new TNumber();
         } else if (clazz.equals(boolean.class) || clazz.equals(Boolean.class)) {
-            return new JBoolean();
+            return new TBoolean();
         } else if (clazz.equals(String.class)) {
-            return new JString();
+            return new TString();
         } else if (clazz.equals(Map.class)) {
-            return new JObject();
+            return new TObject();
         } else if (clazz.equals(Object.class)) {
-            return new JAnyType();
+            return new TAnyType();
         } else if (clazz.isArray()) {  // todo: support for List?
             return generateJsonSchemaForArrayField(state, clazz);
         } else if (clazz.isEnum()) {
@@ -90,12 +90,12 @@ class AnnotationParser {
     }
 
     protected static Schema<?, ?> generateJsonSchemaForArrayField(StateData state, Class<?> clazz) {
-        return new JArray()
+        return new TArray()
                 .addType(generateJsonSchemaForField(state, clazz.getComponentType()));
     }
 
-    protected static JString generateJsonSchemaForEnum(Class<?> clazz) {
-        return new JString()
+    protected static TString generateJsonSchemaForEnum(Class<?> clazz) {
+        return new TString()
                 .options(Stream.of(clazz.getEnumConstants()).map(v -> ((Enum<?>) v).name()).toList());
     }
 
@@ -124,7 +124,7 @@ class AnnotationParser {
 
         // string constrains
 
-        if (schema instanceof JString jString) {
+        if (schema instanceof TString jString) {
             if (constraints.minLength() != -1)
                 jString.minLength(constraints.minLength());
             if (constraints.maxLength() != -1)
@@ -139,7 +139,7 @@ class AnnotationParser {
 
         // numeric constraints
 
-        if (schema instanceof JNumber jNumber) {
+        if (schema instanceof TNumber jNumber) {
             if (constraints.multipleOf() != -1)
                 jNumber.multipleOf(constraints.multipleOf());
 
@@ -155,7 +155,7 @@ class AnnotationParser {
 
         // object constraints
 
-        if (schema instanceof JObject jObject) {
+        if (schema instanceof TObject jObject) {
             if (constraints.minProperties() != -1)
                 jObject.minProperties(constraints.minProperties());
             if (constraints.maxProperties() != -1)
@@ -164,7 +164,7 @@ class AnnotationParser {
 
         // array constraints
 
-        if (schema instanceof JArray jArray) {
+        if (schema instanceof TArray jArray) {
             if (constraints.minItems() != -1)
                 jArray.minSize(constraints.minItems());
             if (constraints.maxItems() != -1)

@@ -1,37 +1,37 @@
 package org.dynapi.jsonschema.gen.schema;
 
-import lombok.*;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import org.json.JSONObject;
 
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
-public class JInteger extends Schema<JInteger, Long> {
-
-    public JInteger gte(long value) {
+public class TNumber extends Schema<TNumber, Double> {
+    public TNumber gte(double value) {
         options.put("minimum", value);
         options.put("exclusiveMinimum", false);
         return this;
     }
 
-    public JInteger gt(long value) {
+    public TNumber gt(double value) {
         options.put("minimum", value);
         options.put("exclusiveMinimum", true);
         return this;
     }
 
-    public JInteger lte(long value) {
+    public TNumber lte(double value) {
         options.put("maximum", value);
         options.put("exclusiveMaximum", false);
         return this;
     }
 
-    public JInteger lt(long value) {
+    public TNumber lt(double value) {
         options.put("maximum", value);
         options.put("exclusiveMaximum", true);
         return this;
     }
 
-    public JInteger multipleOf(long value) {
+    public TNumber multipleOf(double value) {
         options.put("multipleOf", value);
         return this;
     }
@@ -39,6 +39,6 @@ public class JInteger extends Schema<JInteger, Long> {
     @Override
     protected JSONObject extraSchemaData() {
         return new JSONObject()
-                .put("type", "integer");
+                .put("type", "number");
     }
 }

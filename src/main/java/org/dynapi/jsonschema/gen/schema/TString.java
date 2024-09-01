@@ -7,12 +7,12 @@ import java.util.regex.Pattern;
 
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
-public class JString extends Schema<JString, String> {
+public class TString extends Schema<TString, String> {
     /**
      *
      * @param minLength minimum length in characters
      */
-    public JString minLength(int minLength) {
+    public TString minLength(int minLength) {
         options.put("minLength", minLength);
         return this;
     }
@@ -20,7 +20,7 @@ public class JString extends Schema<JString, String> {
     /**
      * @param maxLength maximum length in characters
      */
-    public JString maxLength(int maxLength) {
+    public TString maxLength(int maxLength) {
         options.put("maxLength", maxLength);
         return this;
     }
@@ -28,7 +28,7 @@ public class JString extends Schema<JString, String> {
     /**
      * @param pattern regex pattern the value should match
      */
-    public JString pattern(@NonNull String pattern) {
+    public TString pattern(@NonNull String pattern) {
         options.put("pattern", pattern);
         return this;
     }
@@ -36,12 +36,12 @@ public class JString extends Schema<JString, String> {
     /**
      * @param pattern regex pattern the value should match
      */
-    public JString pattern(@NonNull Pattern pattern) {
+    public TString pattern(@NonNull Pattern pattern) {
         options.put("pattern", pattern.pattern());
         return this;
     }
 
-    public JString format(@NonNull String format) {
+    public TString format(@NonNull String format) {
         options.put("format", format);
         return this;
     }

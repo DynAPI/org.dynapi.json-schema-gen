@@ -5,10 +5,10 @@ import org.json.JSONObject;
 
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
-public class JRef extends Schema<JRef, Void> {
+public class TRef extends Schema<TRef, Void> {
     private final String ref;
 
-    public JRef(@NonNull String ref) {
+    public TRef(@NonNull String ref) {
         this.ref = ref;
     }
 
