@@ -12,6 +12,7 @@ import java.util.Map;
 @ToString
 @EqualsAndHashCode
 abstract public class Schema<THIS extends Schema<THIS, ?>, TYPE> implements JsonSchemaAble {
+    @SuppressWarnings("unchecked")
     protected THIS getThis() { return (THIS) this; }
 
     protected final Map<String, Object> options = new HashMap<>();

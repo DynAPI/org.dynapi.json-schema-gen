@@ -104,22 +104,21 @@ class AnnotationParser {
         object.description(meta.value());
     }
 
+    @SuppressWarnings("unchecked")
     protected static <T> void applyExamples(Examples examples, Schema<?, T> object) {
         if (examples == null) return;
-        //noinspection unchecked
         object.examples((List<T>) Arrays.stream(examples.value()).map(Util::parseStringToJsonX).toList());
     }
 
+    @SuppressWarnings("unchecked")
     protected static <T> void applyConstraints(Constraints constraints, Schema<?, T> schema) {
         if (constraints == null) return;
 
         // common constraints
 
         if (!constraints.option().isEmpty())
-            //noinspection unchecked
-            schema.constValue((T) constraints.option());
+            schema.constValue((T) Util.parseStringToJsonX(constraints.option()));
         if (constraints.options().length > 0)
-            //noinspection unchecked
             schema.options((List<T>) Arrays.stream(constraints.options()).map(Util::parseStringToJsonX).toList());
 
         // string constrains
