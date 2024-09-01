@@ -2,7 +2,6 @@ package org.dynapi.jsonschema.gen.schema;
 
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-import org.dynapi.jsonschema.gen.JsonSchemaAble;
 import org.json.JSONObject;
 
 import java.util.HashMap;
@@ -11,7 +10,7 @@ import java.util.Map;
 
 @ToString
 @EqualsAndHashCode
-abstract public class Schema<THIS extends Schema<THIS, ?>, TYPE> implements JsonSchemaAble {
+abstract public class Schema<THIS extends Schema<THIS, ?>, TYPE> {
     @SuppressWarnings("unchecked")
     protected THIS getThis() { return (THIS) this; }
 
@@ -60,8 +59,7 @@ abstract public class Schema<THIS extends Schema<THIS, ?>, TYPE> implements Json
         return new Not(this);
     }
 
-    @Override
-    public JSONObject getJsonSchema() {
+    final public JSONObject getJsonSchema() {
         JSONObject schema = new JSONObject(options);
         JSONObject extraData = extraSchemaData();
         for (String key : extraData.keySet())
