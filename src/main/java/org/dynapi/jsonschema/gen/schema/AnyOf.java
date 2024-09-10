@@ -14,7 +14,11 @@ public class AnyOf extends Schema<AnyOf, Void> {
     private final List<Schema<?, ?>> subSchemas = new ArrayList<>();
 
     public AnyOf(Schema<?, ?>... schemas) {
-        subSchemas.addAll(List.of(schemas));
+        this(List.of(schemas));
+    }
+
+    public AnyOf(List<? extends Schema<?, ?>> schemas) {
+        subSchemas.addAll(schemas);
     }
 
     public AnyOf addSchema(Schema<?, ?> schema) {

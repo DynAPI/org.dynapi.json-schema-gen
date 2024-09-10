@@ -14,7 +14,11 @@ public class AllOf extends Schema<AllOf, Void> {
     private final List<Schema<?, ?>> subSchemas = new ArrayList<>();
 
     public AllOf(Schema<?, ?>... schemas) {
-        subSchemas.addAll(List.of(schemas));
+        this(List.of(schemas));
+    }
+
+    public AllOf(List<? extends Schema<?, ?>> schemas) {
+        subSchemas.addAll(schemas);
     }
 
     public AllOf addSchema(Schema<?, ?> schema) {

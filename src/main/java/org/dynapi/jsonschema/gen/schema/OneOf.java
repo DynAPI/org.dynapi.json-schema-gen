@@ -14,7 +14,11 @@ public class OneOf extends Schema<OneOf, Void> {
     private final List<Schema<?, ?>> subSchemas = new ArrayList<>();
 
     public OneOf(Schema<?, ?>... schemas) {
-        subSchemas.addAll(List.of(schemas));
+        this(List.of(schemas));
+    }
+
+    public OneOf(List<? extends Schema<?, ?>> schemas) {
+        subSchemas.addAll(schemas);
     }
 
     public OneOf addSchema(Schema<?, ?> schema) {
