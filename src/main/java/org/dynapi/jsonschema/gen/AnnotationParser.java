@@ -35,7 +35,18 @@ class AnnotationParser {
         for (Field field : clazz.getDeclaredFields()) {
             if (hiddenPropertiesNames.contains(field.getName()) || field.isAnnotationPresent(Hidden.class)) continue;
 
-            Schema<?, ?> fieldSchema = generateJsonSchemaForField(state, field.getType());
+            Schema<?, ?> fieldSchema;
+
+            Implementations implementations = field.getAnnotation(Implementations.class);
+            if (implementations != null) {
+                fieldSchema = new OneOf(
+                        Stream.of(implementations.value())
+                                .map(implementation -> generateJsonSchemaForObject(state, implementation))
+                                .toList()
+                );
+            } else {
+                fieldSchema = generateJsonSchemaForField(state, field.getType());
+            }
 
             applyDescription(field.getAnnotation(Description.class), fieldSchema);
             applyExamples(field.getAnnotation(Examples.class), fieldSchema);
@@ -96,7 +107,9 @@ class AnnotationParser {
     }
 
     protected static Schema<?, ?> generateJsonSchemaForField(StateData state, Class<?> clazz) {
-        if (clazz.equals(int.class) || clazz.equals(Integer.class)) {
+        if (clazz.equals(Number.class)) {
+            return new TNumber();
+        } else if (clazz.equals(int.class) || clazz.equals(Integer.class)) {
             return new TInteger();
         } else if (clazz.equals(long.class) || clazz.equals(Long.class)) {
             return new TInteger();
