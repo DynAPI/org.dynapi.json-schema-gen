@@ -2,7 +2,6 @@ package org.dynapi.jsonschema.gen;
 
 import org.dynapi.jsonschema.gen.annotations.*;
 import org.dynapi.jsonschema.gen.schema.*;
-import org.json.JSONObject;
 
 import java.lang.reflect.Field;
 import java.util.*;
@@ -25,15 +24,13 @@ class AnnotationParser {
         List<String> fieldNames = Arrays.stream(clazz.getDeclaredFields()).map(Field::getName).toList();
 
         HiddenProperties hiddenProperties = clazz.getAnnotation(HiddenProperties.class);
-        List<String> hiddenPropertiesNames = List.of(hiddenProperties != null ? hiddenProperties.value() : new String[0]);
+        List<String> hiddenPropertiesNames = Arrays.asList(hiddenProperties != null ? hiddenProperties.value() : new String[0]);
 
-        List<String> diff = new ArrayList<>(hiddenPropertiesNames);
-        diff.removeAll(fieldNames);
-        if (!diff.isEmpty()) {
-            throw new RuntimeException("Unknown properties to hide: " + String.join(", ", diff));
-        }
+        Set<String> diff = diff(fieldNames, hiddenPropertiesNames);
+        if (!diff.isEmpty())
+            throw new RuntimeException("Unknown properties to hide of @HiddenProperties of " + clazz.getCanonicalName() + " (" + String.join(", ", diff) + ")");
 
-        List<Set<String>> mutuallyExclusivesGroups = new ArrayList<>();
+        Map<String, Set<String>> mutuallyExclusivesGroups = new HashMap<>();
 
         for (Field field : clazz.getDeclaredFields()) {
             if (hiddenPropertiesNames.contains(field.getName()) || field.isAnnotationPresent(Hidden.class)) continue;
@@ -52,47 +49,47 @@ class AnnotationParser {
 
             RequiredIf[] requiredIfAnyOf = field.getAnnotationsByType(RequiredIf.class);
             for (RequiredIf requiredIf : requiredIfAnyOf) {
-                String ifField = field.getName();
-                if (!fieldNames.contains(ifField)) {
-                    String errorMessage = String.format("Bad @RequiredIf(\"%s\") of property %s of class %s", ifField, field.getName(), clazz.getCanonicalName());
-                    throw new RuntimeException(errorMessage);
-                }
-                jsonSchema.requiredIf(ifField, requiredIf.value());
+                String fieldName = field.getName();
+                String ifField = requiredIf.value();
+                if (!fieldNames.contains(ifField))
+                    throw new RuntimeException("unknown field of @RequiredIf of " + clazz.getCanonicalName() + "#" + fieldName + " (" + ifField + ")");
+                jsonSchema.requiredIf(fieldName, ifField);
             }
 
             // finds a mutually exclusive group and adds, or creates a new one
             MutuallyExclusiveWith mutuallyExclusiveWith = field.getAnnotation(MutuallyExclusiveWith.class);
             if (mutuallyExclusiveWith != null) {
-                Set<String> group = new HashSet<>();
-                group.add(field.getName());
-                group.addAll(Arrays.asList(mutuallyExclusiveWith.value()));
-                Optional<Set<String>> existingGroup = mutuallyExclusivesGroups.stream().filter(g -> !Collections.disjoint(g, group)).findFirst();
-                if (existingGroup.isPresent()) {
-                    existingGroup.get().addAll(group);
-                } else {
-                    mutuallyExclusivesGroups.add(group);
-                }
+                String fieldName = field.getName();
+                Set<String> others = Set.of(mutuallyExclusiveWith.value());
+                Set<String> unknownFields = diff(fieldNames, others);
+                if (!unknownFields.isEmpty())
+                    throw new RuntimeException("Unknown field(s) of @MutuallyExclusiveWith of " + clazz.getCanonicalName() + "#" + fieldName + " (" + String.join(", ", unknownFields) + ")");
+                mutuallyExclusivesGroups.put(fieldName, others);
             }
 
             jsonSchema.addProperty(field.getName(), fieldSchema);
         }
 
-        // weird way of adding mutually exclusive fields
         if (!mutuallyExclusivesGroups.isEmpty()) {
-            AllOf allOf = new AllOf();
-            for (Set<String> group : mutuallyExclusivesGroups) {
-                OneOf oneOf = new OneOf();
-                for (String fieldName : group) {
-                    Set<String> otherFields = new HashSet<>(group);
-                    otherFields.remove(fieldName);
-                    BackdoorSchema backdoor = new BackdoorSchema()
-                            .setDirectly("required", List.of(fieldName))
-                            .setDirectly("not", new JSONObject().put("required", otherFields));
-                    oneOf.addSchema(backdoor);
+            // we precompute and remove duplicates before adding to the schema
+            Set<Set<String>> badPairs = new HashSet<>();
+            for (Map.Entry<String, Set<String>> entry : mutuallyExclusivesGroups.entrySet()) {
+                String fieldName = entry.getKey();
+                for (String otherField : entry.getValue()) {
+                    badPairs.add(Set.of(fieldName, otherField));
                 }
-                allOf.addSchema(oneOf);
             }
-            BackdoorSchema.addExtraSchemaDataFromTo(allOf, jsonSchema);
+
+            Not notAnyOfPair = new Not(new AnyOf(
+                    badPairs
+                            .stream()
+                            .map(badPair ->
+                                    (Schema<?, ?>) new BackdoorSchema()
+                                            .setDirectly("required", badPair)
+                            )
+                            .toList()
+            ));
+            BackdoorSchema.addExtraSchemaDataFromTo(notAnyOfPair, jsonSchema);
         }
 
         return jsonSchema;
@@ -207,6 +204,12 @@ class AnnotationParser {
             if (constraints.uniqueItems())
                 jArray.uniqueItems();
         }
+    }
+
+    protected static <T> Set<T> diff(Collection<T> allowed, Collection<T> used) {
+        Set<T> result = new HashSet<>(used);
+        result.removeAll(allowed);
+        return result;
     }
 
     protected static class StateData {
